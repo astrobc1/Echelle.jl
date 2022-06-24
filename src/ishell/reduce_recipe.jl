@@ -11,25 +11,17 @@ using Infiltrator
 
 export iSHELLReduceRecipe
 
-struct iSHELLReduceRecipe{E<:SpectralExtractor, B<:Union{String, Nothing}} <: ReduceRecipe
+struct iSHELLReduceRecipe{E<:SpectralExtractor} <: ReduceRecipe
     data_input_path::String
     output_path::String
-    sregion::SpecRegion2d
     do_dark::Bool
     do_flat::Bool
-    slit_height::Int
-    order_spacing::Int
-    base_flat_field_file::B
     extractor::E
-    extract_orders::Vector{Int}
 end
 
-function iSHELLReduceRecipe(;data_input_path, output_path, sregion, do_dark=false, do_flat=true, slit_height, order_spacing, base_flat_field_file=nothing, extractor, extract_orders=nothing)
+function iSHELLReduceRecipe(;data_input_path, output_path, do_dark=false, do_flat=true, extractor::SpectralExtractor)
     output_path = output_path * split(data_input_path, Base.Filesystem.path_separator)[end-1] * Base.Filesystem.path_separator
-    if isnothing(extract_orders)
-        extract_orders = [ordermin(sregion):ordermax(sregion);]
-    end
-    recipe = iSHELLReduceRecipe(data_input_path, output_path, sregion, do_dark, do_flat, slit_height, order_spacing, base_flat_field_file, extractor, extract_orders)
+    recipe = iSHELLReduceRecipe(data_input_path, output_path, do_dark, do_flat, extractor)
     return recipe
 end
 
@@ -43,7 +35,7 @@ function EchelleReduce.initialize_data(recipe::iSHELLReduceRecipe)
     sci_files = sort(sci_files)
     data["science"] = [RawSpecData2d(sci_file, "iSHELL") for sci_file ∈ sci_files]
 
-    # Delete bad objects
+    # Remove mislabeled cals
     target_names = [lowercase(parse_object(d)) for d ∈ data["science"]]
     bad = findall((target_names .== "dark") .|| (target_names .== "darks") .|| (target_names .== "flat") .|| (target_names .== "QTH"))
     deleteat!(data["science"], bad)
@@ -90,37 +82,61 @@ function _get_master_flat(data, master_flats)
     return master_flat
 end
 
+# Default for KGAS mode, may need adjusting!
+function get_specregion2d(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell})
+    sregion = SpecRegion2d(pixmin=200, pixmax=2048-200, orderbottom=212, ordertop=240,
+                           poly_bottom=Polynomial([-116.36685525376339, 0.20359022197025314, -5.9597390213793886e-05]),
+                           poly_top=Polynomial([1858.343750000002, 0.1634374999999993, -5.078125000000014e-05]))
+    return sregion
+end
+
+EchelleReduce.get_trace_spacing(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell}) = 30
+EchelleReduce.get_trace_height(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell}) = 28
+EchelleReduce.get_extract_orders(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell}, sregion::SpecRegion2d) = [SpectralRegions.ordermin(sregion):SpectralRegions.ordermax(sregion);]
+
 function EchelleReduce.get_traces(recipe::iSHELLReduceRecipe, data; xleft=500, xright=2048-510, n_slices=20)
-    traces = Dict()
-    sregions = Dict()
+
+    # Store trace params and regions for each master flat
+    traces = []
+    sregions = []
+
+    # Loop over master flats
     for order_map ∈ data["master_flats"]
-        if !isnothing(recipe.base_flat_field_file)
-            offset = compute_vertical_order_drift(recipe, order_map)
-            sregion_new = deepcopy(recipe.sregion)
-            sregion_new.poly_bottom.coeffs[1] -= offset
-            sregion_new.poly_top.coeffs[1] -= offset
-            sregions[order_map] = sregion_new
-        else
-            sregions[order_map] = recipe.sregion
-        end
-        _traces = Tracing.trace(order_map, sregions[order_map], trace_pos_deg=2, min_order_spacing=recipe.order_spacing, xleft=xleft, xright=xright, n_slices=n_slices)
+
+        # Get the sregion for this master flat
+        sregion = get_specregion2d(recipe, order_map)
+
+        # Some config
+        order_spacing = get_trace_spacing(recipe, order_map)
+        order_height = get_trace_height(recipe, order_map)
+
+        # Trace the orders
+        _traces = Tracing.trace(order_map, sregion, trace_pos_deg=2, min_order_spacing=order_spacing, xleft=xleft, xright=xright, n_slices=n_slices)
+
+        # Override height results from tracing alg
         for t ∈ _traces
-            t["height"] = recipe.slit_height
+            t["height"] = order_height
         end
+
+        # Save trace params to jld file
         fname = "$(recipe.output_path)trace$(Base.Filesystem.path_separator)$(split(basename(order_map.fname), '.')[1])_order_map.jld"
         @save fname _traces
-        traces[order_map] = _traces
+
+        # Store results
+        push!(traces, _traces)
+        push!(sregions, sregion)
     end
+
+    # Return
     return traces, sregions
 end
+
 
 function EchelleReduce.create_output_dirs(recipe::iSHELLReduceRecipe)
     mkpath(recipe.output_path * "trace")
     mkpath(recipe.output_path * "spectra")
     mkpath(recipe.output_path * "calib")
 end
-
-
 
 function EchelleReduce.reduce(recipe::iSHELLReduceRecipe)
 
@@ -137,9 +153,9 @@ function EchelleReduce.reduce(recipe::iSHELLReduceRecipe)
     traces, sregions = get_traces(recipe, data)
 
     # Fix in between orders
-    for mflat ∈ data["master_flats"]
+    for (i, mflat) ∈ enumerate(data["master_flats"])
         flat_image = read_image(mflat)
-        order_map_image = Tracing.gen_trace_image(traces[mflat], 2048, 2048, sregions[mflat])
+        order_map_image = Tracing.gen_trace_image(traces[i], 2048, 2048, sregions[i])
         bad = findall(.~isfinite.(order_map_image))
         flat_image[bad] .= NaN
         FITSIO.fitswrite(mflat.fname, collect(transpose(flat_image)), header=mflat.group[1].header)
@@ -161,58 +177,60 @@ function EchelleReduce.gen_master_calib_images(recipe::iSHELLReduceRecipe, data)
     end
 end
 
-function EchelleReduce.extract_image(extractor::SpectralExtractor, data::SpecData2d{:ishell}, traces, sregion::SpecRegion2d, master_flat, master_dark, read_noise=0, extract_orders=nothing)
+function EchelleReduce.extract_image(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell}, traces::Vector, sregion::SpecRegion2d, master_flat, master_dark, read_noise=0, extract_orders=nothing)
     if isnothing(extract_orders)
-        extract_orders = [ordermin(sregion):ordermax(sregion);]
+        extract_orders = get_extract_orders(recipe, data, sregion)
     end
-    traces = [t for t ∈ traces if t["order"] ∈ extract_orders]
     data_image = read_image(data)
     pre_calibrate!(data_image; master_dark=master_dark, master_flat=master_flat)
-    reduced_data = extract_image(extractor, data, data_image, sregion, traces, badpix_mask=nothing)
+    traces = [t for t ∈ traces if t["order"] ∈ extract_orders]
+    reduced_data = extract_image(recipe.extractor, data, data_image, sregion, traces, badpix_mask=nothing)
     return reduced_data
 end
 
-function EchelleReduce.extract(recipe::iSHELLReduceRecipe, data, traces, sregions::Dict)
+function EchelleReduce.extract(recipe::iSHELLReduceRecipe, data, traces, sregions)
 
     # Extract in parallel
-    pmap(1:length(data["extract"])) do i
+    map(1:length(data["extract"])) do i
 
         # Alias data
         _data = data["extract"][i]
 
         # Get cals
-        master_flat = recipe.do_flat ? get_master_flat(recipe, _data, data["master_flats"]) : nothing
+        master_flat = get_master_flat(recipe, _data, data["master_flats"])
         master_dark = recipe.do_dark ? get_master_dark(recipe, _data, data["master_darks"]) : nothing
 
         # Alias trace params and region
-        _traces = traces[master_flat]
-        sregion = sregions[master_flat]
+        k = findfirst(x -> x == master_flat, data["master_flats"])
+        _traces = traces[k]
+        sregion = sregions[k]
 
         # Get read noise in PE
-        read_noise = parse_itime(_data) * detector["dark_current"] + detector["read_noise"]
+        read_noise = get_read_noise(_data, detector["dark_current"], detector["read_noise"])
 
         # Extract full image
-        reduced_data = extract_image(recipe.extractor, _data, _traces, sregion, master_flat, master_dark, read_noise, recipe.extract_orders)
+        reduced_data = extract_image(recipe, _data, _traces, sregion, master_flat, master_dark, read_noise)
 
         # Reduced filename
         target = replace(parse_object(_data), " " => "_")
         fname = "$(recipe.output_path)spectra$(Base.Filesystem.path_separator)$(splitext(basename(_data.fname))[1])_$(target)_reduced.png"
 
         # Plot
-        plot_extracted_spectrum(_data, reduced_data, recipe.sregion, fname, [t for t ∈ _traces if t["order"] ∈ recipe.extract_orders])
+        extract_orders = get_extract_orders(recipe, _data, sregion)
+        __traces = [t for t ∈ _traces if t["order"] ∈ extract_orders]
+        plot_extracted_spectrum(recipe, _data, reduced_data, fname, __traces)
 
         # Save .fits file
-        save_reduced_spectrum(recipe, _data, reduced_data, sregion)
+        save_reduced_spectrum(recipe, _data, reduced_data)
     end
 end
 
-function save_reduced_spectrum(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell}, reduced_data, sregion::SpecRegion2d)
-    n_orders = num_orders(sregion)
+function save_reduced_spectrum(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell}, reduced_data::Vector)
+    n_orders = length(reduced_data)
     reduced_data_out = fill(NaN, (n_orders, 2048, 3))
     k = 1
     for i=1:n_orders
-        order = ordermin(sregion) + i - 1
-        if order ∈ recipe.extract_orders && !isnothing(reduced_data[k])
+        if !isnothing(reduced_data[k])
             reduced_data_out[i, :, 1] .= reduced_data[k].spec1d
             reduced_data_out[i, :, 2] .= reduced_data[k].spec1derr
             reduced_data_out[i, :, 3] .= reduced_data[k].spec1dmask
@@ -241,28 +259,4 @@ function group_flats(recipe::iSHELLReduceRecipe, data)
     end
     push!(flat_groups, flats[prev_i:end])
     return flat_groups
-end
-
-function compute_vertical_order_drift(recipe, data)
-    image1 = Float64.(read(FITS(recipe.base_flat_field_file)[1]))
-    image1 = collect(transpose(image1))
-    image2 = read_image(data)
-    image1 .= maths.median_filter2d(image1, 5)
-    image2 .= maths.median_filter2d(image2, 5)
-    ny, nx = size(image1)
-    lags = [-200:1:201;]
-    n_lags = length(lags)
-    n_slices = 100
-    ccfs = fill(NaN, (n_lags, n_slices))
-    yarr = [1:ny;]
-    slices = Int.(floor.(collect(range(500, ny-500-1, length=n_slices))))
-    for i=1:n_slices
-        ii = slices[i]
-        s1 = @views image1[:, ii] ./ maths.weighted_median(image1[:, ii], p=0.95)
-        s2 = @views image2[:, ii] ./ maths.weighted_median(image2[:, ii], p=0.95)
-        ccfs[:, i] .= maths.cross_correlate_interp(yarr, s1, yarr, s2, lags, kind="xc")
-    end
-    ccf = reshape(nanmedian(ccfs, dims=2), n_lags)
-    lag_best = lags[maths.nanargmaximum(ccf)]
-    return lag_best
 end
