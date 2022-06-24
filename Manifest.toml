@@ -260,7 +260,7 @@ version = "0.7.1"
 
 [[deps.EchelleBase]]
 deps = ["DataFrames", "FITSIO", "Infiltrator", "LinearAlgebra", "LoopVectorization", "NaNStatistics", "Pkg", "Polynomials", "PyCall", "Reexport", "Statistics", "StatsBase"]
-git-tree-sha1 = "c6adb29833b3d4d5691226b5c0ca14fff3689555"
+git-tree-sha1 = "f94f646b76b03fabc3331824fdf8a5ea2dd6976a"
 repo-rev = "master"
 repo-url = "https://github.com/astrobc1/EchelleBase.jl"
 uuid = "fb2f92b1-9968-41b4-8835-2765b866fa7d"
@@ -268,7 +268,7 @@ version = "0.1.0"
 
 [[deps.EchelleReduce]]
 deps = ["Arpack", "Distributed", "EchelleBase", "Infiltrator", "LinearAlgebra", "NaNStatistics", "Polynomials", "PyCall", "PyPlot", "Reexport", "SparseArrays", "Statistics"]
-git-tree-sha1 = "e7b6e7d0f9be859f2e1080c54b421a706c0631c4"
+git-tree-sha1 = "75068280a408dfe9df7e842074bdc5f8047a0fa4"
 repo-rev = "master"
 repo-url = "https://github.com/astrobc1/EchelleReduce.jl"
 uuid = "6e4c0b07-9b25-4ed4-a66d-c9590014de2c"
@@ -276,7 +276,7 @@ version = "0.1.0"
 
 [[deps.EchelleSpectralModeling]]
 deps = ["AstroTime", "CurveFitParameters", "DataFrames", "DataStructures", "DelimitedFiles", "Distributed", "EchelleBase", "FITSIO", "FileIO", "Infiltrator", "IterativeNelderMead", "JLD2", "LoopVectorization", "LsqFit", "NPZ", "NaNStatistics", "Pkg", "Polynomials", "PyCall", "PyPlot", "Reexport", "SpecialMatrices", "Statistics", "StatsBase"]
-git-tree-sha1 = "bbf6e215c57d7635b109d1f97cbadfed8cbf87e9"
+git-tree-sha1 = "86947a3a12f0d5d6edca60e3aec5d36eea80fb1a"
 repo-rev = "master"
 repo-url = "https://github.com/astrobc1/EchelleSpectralModeling.jl"
 uuid = "21191324-591a-4772-8660-80137e376464"

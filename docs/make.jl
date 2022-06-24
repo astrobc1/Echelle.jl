@@ -1,12 +1,21 @@
-pushfirst!(LOAD_PATH,"../src/")
+#pushfirst!(LOAD_PATH,"../src/")
+pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleBase/src/")
+pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleReduce/src/")
+pushfirst!(LOAD_PATH, "/Users/cale/Development/CurveFitParameters/src/")
+pushfirst!(LOAD_PATH, "/Users/cale/Development/IterativeNelderMead/src/")
+pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleSpectralModeling/src/")
+pushfirst!(LOAD_PATH, "/Users/cale/Development/Echelle/src/")
 
 using Documenter
 using Echelle
+using EchelleBase
+using EchelleReduce
+using EchelleSpectralModeling
 
 makedocs(
     sitename = "Echelle.jl",
     format = Documenter.HTML(),
-    modules = [Echelle],
+    modules = [Echelle, EchelleBase, EchelleReduce, EchelleSpectralModeling],
     pages = [
         "index.md",
         "spectrographs.md",
