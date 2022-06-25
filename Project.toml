@@ -25,3 +25,7 @@ PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SkyCoords = "fc659fc5-75a3-5475-a2ea-3da92c065361"
 SpecialMatrices = "928aab9d-ef52-54ac-8ca1-acd7ca42c160"
+
+[compat]
+LoopVectorization = "0.12.118, 0.12.118"
+NaNStatistics = "0.6.11, 0.6.11"
