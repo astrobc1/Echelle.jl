@@ -5,19 +5,19 @@ function SpectralData.read_spec1d(data::SpecData1d{:harps}, sregion::SpecRegion1
     f = FITSIO.FITS(data.fname)
     λ = Float64.(read(f[2], "WAVE")[:] ./ 10)
     flux = Float64.(read(f[2], "FLUX")[:])
-    fluxerr = Float64.(read(f[2], "ERR")[:])
+    #fluxerr = Float64.(read(f[2], "ERR")[:])
     mask = ones(length(flux))
     λ .= maths.doppler_shift_λ(λ, -1000 * data.header["ESO DRS BERV"])
     good = findall((λ .> sregion.λmin - 0.5) .&& (λ .< sregion.λmax + 0.5))
     data.data.λ = λ[good]
     data.data.flux = flux[good]
-    data.data.fluxerr = fluxerr[good]
+    #data.data.fluxerr = fluxerr[good]
     data.data.mask = mask[good]
-    bad = findall(.~isfinite.(data.data.flux) .|| (data.data.mask .== 0))
+    bad = findall(.~isfinite.(data.data.flux) .|| (data.data.mask .== 0) .|| (data.data.flux .<= 0))
     data.data.λ[bad] .= NaN
     data.data.flux[bad] .= NaN
-    data.data.fluxerr[bad] .= NaN
     data.data.mask[bad] .= 0
+    data.data.fluxerr = sqrt.(data.data.flux)
     normalize!(data, p=0.98)
 end
 
