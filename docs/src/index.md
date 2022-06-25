@@ -3,7 +3,7 @@ Echelle.jl
 
 Welcome to the documentation for [Echelle.jl](https://github.com/astrobc1/Echelle.jl)!
 
-[Echelle.jl](https://github.com/astrobc1/Echelle.jl) provides an interface to process and analyze Echelle spectra in the Julia programming language.
+[Echelle.jl](https://github.com/astrobc1/Echelle.jl) provides an interface to process and analyze Echelle spectra in the Julia programming language with the primary goal of generating radial velocities.
 
 Installation
 ------------

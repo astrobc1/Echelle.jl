@@ -16,32 +16,24 @@ struct PARVIReduceRecipe{E<:SpectralExtractor} <: ReduceRecipe
     utdate::String
     target_input_paths::Dict{String, String}
     target_output_paths::Dict{String, String}
-    sci_exposure_fibers::Vector{Int}
     calib_output_path::String
     full_flat_files::Vector{String}
     fiber_flat_files::Dict{Int, Vector{String}}
     extract_fiber_flats::Bool
     dark_files::Vector{String}
     lfc_files::Union{Vector{String}, Nothing}
-    lfc_cal_fibers::Vector{Int}
     extract_lfc::Bool
     badpix_mask_file::String
-    sregion_fiber1::SpecRegion2d
-    sregion_fiber3::SpecRegion2d
     do_dark::Bool
     do_flat::Bool
     extractor::E
-    extract_orders::Vector{Int}
 end
 
-function PARVIReduceRecipe(;utdate, target_input_paths, output_path, sci_exposure_fibers=[1, 3], dark_files, full_flat_files, fiber_flat_files, extract_fiber_flats=true, lfc_files, lfc_cal_fibers=[1, 3], extract_lfc=true, badpix_mask_file, sregion_fiber1, sregion_fiber3, do_dark, do_flat, extractor, extract_orders=nothing)
-    if isnothing(extract_orders)
-        extract_orders = [ordermin(sregion_fiber1):ordermax(sregion_fiber1);]
-    end
+function PARVIReduceRecipe(;utdate, target_input_paths, output_path, dark_files, full_flat_files, fiber_flat_files, extract_fiber_flats=true, lfc_files, extract_lfc=true, badpix_mask_file, do_dark, do_flat, extractor)
     targets = keys(target_input_paths)
     target_output_paths = Dict{String, String}(t => output_path * t * Base.Filesystem.path_separator for t ∈ keys(target_input_paths))
     calib_output_path = "$(output_path)calib_$(utdate)$(Base.Filesystem.path_separator)"
-    return PARVIReduceRecipe(utdate, target_input_paths, target_output_paths, sci_exposure_fibers, calib_output_path, full_flat_files, fiber_flat_files, extract_fiber_flats, dark_files, lfc_files, lfc_cal_fibers, extract_lfc, badpix_mask_file, sregion_fiber1, sregion_fiber3, do_dark, do_flat, extractor, extract_orders)
+    return PARVIReduceRecipe(utdate, target_input_paths, target_output_paths, calib_output_path, full_flat_files, fiber_flat_files, extract_fiber_flats, dark_files, lfc_files, extract_lfc, badpix_mask_file, do_dark, do_flat, extractor)
 end
 
 function EchelleReduce.initialize_data(recipe::PARVIReduceRecipe)
@@ -119,10 +111,10 @@ function EchelleReduce.reduce(recipe::PARVIReduceRecipe)
     gen_master_calib_images(recipe, data)
     
     # Trace orders for appropriate images
-    traces_fiber1, traces_fiber3 = trace(recipe, data)
+    traces_fiber1, traces_fiber3, sregion_fiber1, sregion_fiber3 = get_traces(recipe, data)
     
     # Extract all desired images
-    extract(recipe, data, traces_fiber1, traces_fiber3)
+    extract(recipe, data, traces_fiber1, traces_fiber3, sregion_fiber1, sregion_fiber3)
 
 end
 
@@ -133,32 +125,68 @@ function EchelleReduce.create_output_dirs(recipe::PARVIReduceRecipe)
     mkpath(recipe.calib_output_path)
 end
 
-function EchelleReduce.trace(recipe::PARVIReduceRecipe, data; xleft=400, xright=1848, n_slices=100)
+EchelleReduce.get_trace_spacing(recipe::PARVIReduceRecipe, data::SpecData2d{:parvi}) = 20
+EchelleReduce.get_trace_height(recipe::PARVIReduceRecipe, data::SpecData2d{:parvi}) = 12
+EchelleReduce.get_extract_orders(recipe::PARVIReduceRecipe, data::SpecData2d{:parvi}, sregion::SpecRegion2d) = [SpectralRegions.ordermin(sregion):SpectralRegions.ordermax(sregion);]
 
+function EchelleReduce.get_traces(recipe::PARVIReduceRecipe, data; xleft=400, xright=1848, n_slices=100, trace_pos_deg=2)
+
+    # Trace fiber 1
     if 1 ∈ keys(recipe.fiber_flat_files)
+        
+        # Alias
         order_map = data["master_fiber_flat_fiber1"]
-        traces_fiber1 = Tracing.trace(order_map, recipe.sregion_fiber1, trace_pos_deg=2, min_order_spacing=20, xleft=xleft, xright=xright, n_slices=n_slices, fiber=1)
+        
+        # Some config
+        sregion_fiber1 = get_specregion2d(recipe, order_map, 1)
+        trace_spacing = get_trace_spacing(recipe, order_map)
+        trace_height = get_trace_height(recipe, order_map)
+        
+        # Trace
+        traces_fiber1 = Tracing.trace(order_map, sregion_fiber1, trace_pos_deg=trace_pos_deg, min_order_spacing=trace_spacing, xleft=xleft, xright=xright, n_slices=n_slices, fiber=1)
+        
+        # Use custom height
         for t ∈ traces_fiber1
-            t["height"] = 12
+            t["height"] = trace_height
         end
+
+        # Save
         fname = "$(recipe.calib_output_path)$(split(basename(order_map.fname), '.')[1])_traces.jld"
         @save fname traces_fiber1
     else
         traces_fiber1 = nothing
+        sregion_fiber1 = nothing
     end
 
+    # Trace fiber 3
     if 3 ∈ keys(recipe.fiber_flat_files)
+
+        # Alias
         order_map = data["master_fiber_flat_fiber3"]
-        traces_fiber3 = Tracing.trace(order_map, recipe.sregion_fiber3, trace_pos_deg=2, min_order_spacing=20, xleft=xleft, xright=xright, n_slices=n_slices, fiber=3)
+
+        # Some config
+        sregion_fiber3 = get_specregion2d(recipe, order_map, 3)
+        trace_spacing = get_trace_spacing(recipe, order_map)
+        trace_height = get_trace_height(recipe, order_map)
+
+        # Trace
+        traces_fiber3 = Tracing.trace(order_map, sregion_fiber3, trace_pos_deg=trace_pos_deg, min_order_spacing=trace_spacing, xleft=xleft, xright=xright, n_slices=n_slices, fiber=3)
+
+        # Use custom height
         for t ∈ traces_fiber3
-            t["height"] = 12
+            t["height"] = trace_height
         end
+
+        # Save
         fname = "$(recipe.calib_output_path)$(split(basename(order_map.fname), '.')[1])_traces.jld"
         @save fname traces_fiber3
     else
         traces_fiber3 = nothing
+        sregion_fiber3 = nothing
     end
-    return traces_fiber1, traces_fiber3
+
+    # Return
+    return traces_fiber1, traces_fiber3, sregion_fiber1, sregion_fiber3
 end
 
 function EchelleReduce.gen_master_calib_images(recipe::PARVIReduceRecipe, data)
@@ -189,35 +217,43 @@ function EchelleReduce.gen_master_calib_images(recipe::PARVIReduceRecipe, data)
     end
 end
 
-function EchelleReduce.extract_image(extractor::SpectralExtractor, data::SpecData2d{:parvi}, sregion_fiber1::SpecRegion2d, sregion_fiber3::SpecRegion2d, traces_fiber1=nothing, traces_fiber3=nothing, master_dark=nothing, master_full_flat=nothing, badpix_mask=nothing, extract_orders=nothing, extract_fiber1=true, extract_fiber3=true)
+function EchelleReduce.extract_image(recipe::PARVIReduceRecipe, data::SpecData2d{:parvi}, sregion_fiber1=nothing, sregion_fiber3=nothing, traces_fiber1=nothing, traces_fiber3=nothing, master_dark=nothing, master_full_flat=nothing, badpix_mask=nothing, extract_orders=nothing, fibers=nothing)
 
-    # Read image
+    # Load image
     data_image = read_image(data)
 
     # Pre calibrate
     pre_calibrate!(data_image; master_dark=master_dark, master_flat=master_full_flat)
 
-    # Convert to pe
-    spec_mod = get_spec_module(data)
-    gain = spec_mod.detector["gain"]
+    # Convert to pe from slope in adu
     itime = parse_itime(data)
-    data_image .*= (gain * itime)
+    data_image .*= (detector["gain"] * itime)
 
-    # Read noise
-    read_noise = itime * spec_mod.detector["dark_current"] + spec_mod.detector["read_noise"]
+    # Get read noise in PE
+    read_noise = get_read_noise(data, detector["dark_current"], detector["read_noise"])
+
+    # Extract orders
+    if isnothing(extract_orders)
+        extract_orders = get_extract_orders(recipe, data, sregion_fiber1)
+    end
+
+    # Fibers
+    if isnothing(fibers)
+        fibers = get_extract_fibers(recipe, data)
+    end
 
     # Extract fiber 1
-    if extract_fiber1
+    if 1 ∈ fibers
         _traces_fiber1 = [t for t ∈ traces_fiber1 if t["order"] ∈ extract_orders]
-        results_fiber1 = extract_image(extractor, data, data_image, sregion_fiber1, _traces_fiber1, badpix_mask=badpix_mask, read_noise=read_noise)
+        results_fiber1 = extract_image(recipe.extractor, data, data_image, sregion_fiber1, _traces_fiber1, badpix_mask=badpix_mask, read_noise=read_noise)
     else
         results_fiber1 = nothing
     end
 
     # Extract fiber 3
-    if extract_fiber3
+    if 3 ∈ fibers
         _traces_fiber3 = [t for t ∈ traces_fiber3 if t["order"] ∈ extract_orders]
-        results_fiber3 = extract_image(extractor, data, data_image, sregion_fiber3, _traces_fiber3, badpix_mask=badpix_mask, read_noise=read_noise)
+        results_fiber3 = extract_image(recipe.extractor, data, data_image, sregion_fiber3, _traces_fiber3, badpix_mask=badpix_mask, read_noise=read_noise)
     else
         results_fiber3 = nothing
     end
@@ -227,46 +263,85 @@ function EchelleReduce.extract_image(extractor::SpectralExtractor, data::SpecDat
 
 end
 
-
-function EchelleReduce.extract(recipe::PARVIReduceRecipe, data, traces_fiber1=nothing, traces_fiber3=nothing)
-
-    pmap(1:length(data["extract"])) do i
-    #map(1:length(data["extract"])) do i
-        _data = data["extract"][i]
-        extract_fiber1, extract_fiber3 = true, true
-        master_dark = data["master_dark"]
-        master_flat = data["master_full_flat"]
-        badpix_mask = data["badpix_mask"]
-        if _data == data["master_fiber_flat_fiber1"]
-            extract_fiber1, extract_fiber3 = true, false
-        end
-        if _data == data["master_fiber_flat_fiber3"]
-            extract_fiber1, extract_fiber3 = false, true
-        end
-        if _data ∈ data["science"]
-            extract_fiber1, extract_fiber3 = (1 ∈ recipe.sci_exposure_fibers), (3 ∈ recipe.sci_exposure_fibers)
-        end
-        if "master_lfc" ∈ keys(data) && _data == data["master_lfc"]
-            extract_fiber1, extract_fiber3 = (1 ∈ recipe.lfc_cal_fibers), (3 ∈ recipe.lfc_cal_fibers)
-        end
-        results_fiber1, results_fiber3 = extract_image(recipe.extractor, _data, recipe.sregion_fiber1, recipe.sregion_fiber3, traces_fiber1, traces_fiber3, master_dark, master_flat, badpix_mask, recipe.extract_orders, extract_fiber1, extract_fiber3)
-        plot_extracted_spectrum(recipe, _data, results_fiber1, results_fiber3, traces_fiber1, traces_fiber3)
-        save_reduced_spectrum(recipe, _data, results_fiber1, results_fiber3)
+function EchelleReduce.get_specregion2d(recipe::PARVIReduceRecipe, data::SpecData2d{:parvi}, fiber=1)
+    if fiber == 1
+        return SpecRegion2d(
+            pixmin=100, pixmax=1950,
+            orderbottom=129, ordertop=85,
+            poly_bottom=Polynomial([-96.96694214876034, 0.19834710743801653, -7.933884297520661e-5]) + 40,
+            poly_top=Polynomial([1945.187134502924, 0.14471929824561403, -6.5906432748538e-5])
+        )
+    else
+        return SpecRegion2d(
+            pixmin=100, pixmax=1950,
+            orderbottom=129, ordertop=85,
+            poly_bottom=Polynomial([-96.96694214876034, 0.19834710743801653, -7.933884297520661e-5]) - 13 + 40,
+            poly_top=Polynomial([1945.187134502924, 0.14471929824561403, -6.5906432748538e-5]) - 13
+        )
     end
 end
 
-function save_reduced_spectrum(recipe::PARVIReduceRecipe, data::MasterCal2d{:parvi}, results_fiber1=nothing, results_fiber3=nothing)
+function get_extract_fibers(recipe::PARVIReduceRecipe, data::SpecData2d{:parvi})
+    fibers = [1, 3]
+    if occursin("fiber1", data.fname)
+        fibers = [1]
+    elseif occursin("fiber3", data.fname)
+        fibers = [3]
+    elseif occursin("fiber1", data.fname)
+        fibers = [3]
+    elseif occursin("master_lfc", data.fname)
+        fibers = [1, 3]
+    else
+        fibers = [1]
+    end
+    return fibers
+end
+
+
+function EchelleReduce.extract(recipe::PARVIReduceRecipe, data, traces_fiber1=nothing, traces_fiber3=nothing, sregion_fiber1=nothing, sregion_fiber3=nothing)
+
+    #pmap(1:length(data["extract"])) do i
+    map(1:length(data["extract"])) do i
+        
+        # Alias data
+        _data = data["extract"][i]
+
+        # Alias cals
+        master_dark = data["master_dark"]
+        master_full_flat = data["master_full_flat"]
+
+        # Alias badpix mask
+        badpix_mask = data["badpix_mask"]
+
+        # Which orders and fibers
+        extract_orders = get_extract_orders(recipe, _data, sregion_fiber1)
+        fibers = get_extract_fibers(recipe, _data)
+        
+        # Extract all orders and fibers
+        results_fiber1, results_fiber3 = extract_image(recipe, _data, sregion_fiber1, sregion_fiber3, traces_fiber1, traces_fiber3, master_dark, master_full_flat, badpix_mask, extract_orders, fibers)
+
+        # Plot
+        plot_extracted_spectrum(recipe, _data, results_fiber1, results_fiber3, traces_fiber1, traces_fiber3, sregion_fiber1, sregion_fiber3, extract_orders)
+
+        # Save
+        save_reduced_spectrum(recipe, _data, results_fiber1, results_fiber3, sregion_fiber1, sregion_fiber3)
+
+    end
+end
+
+
+function save_reduced_spectrum(recipe::PARVIReduceRecipe, data::MasterCal2d{:parvi}, results_fiber1=nothing, results_fiber3=nothing, sregion_fiber1=nothing, sregion_fiber3=nothing)
     fname = "$(recipe.calib_output_path)$(splitext(basename(data.fname))[1])_reduced.fits"
     f = FITS(fname, "w")
     header = deepcopy(data.group[1].header)
     if !isnothing(results_fiber1)
-        reduced_data_out = get_extraction_result(recipe, results_fiber1)
+        reduced_data_out = get_extraction_result(recipe, data, sregion_fiber1, results_fiber1)
         write(f, reduced_data_out, header=header)
     else
         write(f, Float64[], header=header)
     end
     if !isnothing(results_fiber3)
-        reduced_data_out = get_extraction_result(recipe, results_fiber3)
+        reduced_data_out = get_extraction_result(recipe, data, sregion_fiber3, results_fiber3)
         write(f, reduced_data_out)
     else
         write(f, Float64[])
@@ -274,19 +349,19 @@ function save_reduced_spectrum(recipe::PARVIReduceRecipe, data::MasterCal2d{:par
     close(f)
 end
 
-function save_reduced_spectrum(recipe::PARVIReduceRecipe, data::RawSpecData2d{:parvi}, results_fiber1=nothing, results_fiber3=nothing)
+function save_reduced_spectrum(recipe::PARVIReduceRecipe, data::RawSpecData2d{:parvi}, results_fiber1=nothing, results_fiber3=nothing, sregion_fiber1=nothing, sregion_fiber3=nothing)
     target = parse_object(data)
     fname = "$(recipe.target_output_paths[target])$(splitext(basename(data.fname))[1])_reduced.fits"
     f = FITS(fname, "w")
     header = deepcopy(data.header)
     if !isnothing(results_fiber1)
-        reduced_data_out = get_extraction_result(recipe, results_fiber1)
+        reduced_data_out = get_extraction_result(recipe, data, sregion_fiber1, results_fiber1)
         write(f, reduced_data_out, header=header)
     else
         write(f, Float64[], header=header)
     end
     if !isnothing(results_fiber3)
-        reduced_data_out = get_extraction_result(recipe, results_fiber3)
+        reduced_data_out = get_extraction_result(recipe, data, sregion_fiber3, results_fiber3)
         write(f, reduced_data_out)
     else
         write(f, Float64[])
@@ -294,44 +369,55 @@ function save_reduced_spectrum(recipe::PARVIReduceRecipe, data::RawSpecData2d{:p
     close(f)
 end
 
-function EchelleReduce.plot_extracted_spectrum(recipe::PARVIReduceRecipe, data::MasterCal2d{:parvi}, results_fiber1=nothing, results_fiber3=nothing, traces_fiber1=nothing, traces_fiber3=nothing)
+function EchelleReduce.plot_extracted_spectrum(recipe::PARVIReduceRecipe, data::MasterCal2d{:parvi}, results_fiber1::Union{Vector, Nothing}=nothing, results_fiber3::Union{Vector, Nothing}=nothing, traces_fiber1::Union{Vector, Nothing}=nothing, traces_fiber3::Union{Vector, Nothing}=nothing, sregion_fiber1::Union{SpecRegion2d, Nothing}=nothing, sregion_fiber3::Union{SpecRegion2d, Nothing}=nothing, extract_orders::Union{AbstractVector, Nothing}=nothing)
+    if isnothing(extract_orders)
+        extract_orders = get_extract_orders(recipe, data, sregion_fiber1)
+    end
     if !isnothing(results_fiber1)
+        _traces_fiber1 = [t for t ∈ traces_fiber1 if t["order"] ∈ extract_orders]
         fname = "$(recipe.calib_output_path)$(splitext(basename(data.fname))[1])_fiber1_reduced.png"
-        plot_extracted_spectrum(data, results_fiber1, recipe.sregion_fiber1, fname, [t for t ∈ traces_fiber1 if t["order"] ∈ recipe.extract_orders])
+        plot_extracted_spectrum(recipe, data, results_fiber1, fname, _traces_fiber1)
     end
     if !isnothing(results_fiber3)
+        _traces_fiber3 = [t for t ∈ traces_fiber3 if t["order"] ∈ extract_orders]
         fname = "$(recipe.calib_output_path)$(splitext(basename(data.fname))[1])_fiber3_reduced.png"
-        plot_extracted_spectrum(data, results_fiber3, recipe.sregion_fiber3, fname, [t for t ∈ traces_fiber3 if t["order"] ∈ recipe.extract_orders])
+        plot_extracted_spectrum(recipe, data, results_fiber3, fname, _traces_fiber3)
     end
 end
 
-function EchelleReduce.plot_extracted_spectrum(recipe::PARVIReduceRecipe, data::RawSpecData2d{:parvi}, results_fiber1=nothing, results_fiber3=nothing, traces_fiber1=nothing, traces_fiber3=nothing)
+# plot_extracted_spectrum(recipe::ReduceRecipe, data::SpecData2d, reduced_data::Vector, fname::String, traces::Vector)
+function EchelleReduce.plot_extracted_spectrum(recipe::PARVIReduceRecipe, data::RawSpecData2d{:parvi}, results_fiber1::Union{Vector, Nothing}=nothing, results_fiber3::Union{Vector, Nothing}=nothing, traces_fiber1::Union{Vector, Nothing}=nothing, traces_fiber3::Union{Vector, Nothing}=nothing, sregion_fiber1::Union{SpecRegion2d, Nothing}=nothing, sregion_fiber3::Union{SpecRegion2d, Nothing}=nothing, extract_orders::Union{AbstractVector, Nothing}=nothing)
     target = parse_object(data)
+    if isnothing(extract_orders)
+        extract_orders = get_extract_orders(recipe, data, sregion_fiber1)
+    end
     if !isnothing(results_fiber1)
+        _traces_fiber1 = [t for t ∈ traces_fiber1 if t["order"] ∈ extract_orders]
         fname = "$(recipe.target_output_paths[target])$(splitext(basename(data.fname))[1])_fiber1_reduced.png"
-        EchelleReduce.plot_extracted_spectrum(data, results_fiber1, recipe.sregion_fiber1, fname, [t for t ∈ traces_fiber1 if t["order"] ∈ recipe.extract_orders])
+        plot_extracted_spectrum(recipe, data, results_fiber1, fname, _traces_fiber1)
     end
     if !isnothing(results_fiber3)
+        _traces_fiber3 = [t for t ∈ traces_fiber3 if t["order"] ∈ extract_orders]
         fname = "$(recipe.target_output_paths[target])$(splitext(basename(data.fname))[1])_fiber3_reduced.png"
-        EchelleReduce.plot_extracted_spectrum(data, results_fiber3, recipe.sregion_fiber3, fname, [t for t ∈ traces_fiber3 if t["order"] ∈ recipe.extract_orders])
+        plot_extracted_spectrum(recipe, data, results_fiber3, fname, _traces_fiber3)
     end
 end
 
 
-function get_extraction_result(recipe::PARVIReduceRecipe, results)
-    n_orders = abs(recipe.sregion_fiber1.ordertop - recipe.sregion_fiber1.orderbottom) + 1
+function get_extraction_result(recipe::PARVIReduceRecipe, data::SpecData{:parvi}, sregion::SpecRegion2d, reduced_data::Vector)
+    extract_orders = get_extract_orders(recipe, data, sregion)
+    n_orders = abs(sregion.orderbottom - sregion.ordertop) + 1
+    order_min = min(sregion.orderbottom, sregion.ordertop)
+    order_max = max(sregion.orderbottom, sregion.ordertop)
+    orders_all = [order_min:order_max;]
     reduced_data_out = fill(NaN, (n_orders, 2048, 3))
-    k = 1
-    omin = ordermin(recipe.sregion_fiber1)
-    for i=1:n_orders
-        order = omin + i - 1
-        if order ∈ recipe.extract_orders
-            if !isnothing(results[k])
-                reduced_data_out[i, :, 1] .= results[k].spec1d
-                reduced_data_out[i, :, 2] .= results[k].spec1derr
-                reduced_data_out[i, :, 3] .= results[k].spec1dmask
-            end
-            k += 1
+    for i=1:length(extract_orders)
+        order = extract_orders[i]
+        k = findfirst(order .== orders_all)
+        if !isnothing(reduced_data[i]) && order ∈ extract_orders
+            reduced_data_out[k, :, 1] .= reduced_data[i].spec1d
+            reduced_data_out[k, :, 2] .= reduced_data[i].spec1derr
+            reduced_data_out[k, :, 3] .= reduced_data[i].spec1dmask
         end
     end
     return reduced_data_out

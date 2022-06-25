@@ -83,7 +83,7 @@ function _get_master_flat(data, master_flats)
 end
 
 # Default for KGAS mode, may need adjusting!
-function get_specregion2d(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell})
+function EchelleReduce.get_specregion2d(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell})
     sregion = SpecRegion2d(pixmin=200, pixmax=2048-200, orderbottom=212, ordertop=240,
                            poly_bottom=Polynomial([-116.36685525376339, 0.20359022197025314, -5.9597390213793886e-05]),
                            poly_top=Polynomial([1858.343750000002, 0.1634374999999993, -5.078125000000014e-05]))
@@ -221,22 +221,31 @@ function EchelleReduce.extract(recipe::iSHELLReduceRecipe, data, traces, sregion
         plot_extracted_spectrum(recipe, _data, reduced_data, fname, __traces)
 
         # Save .fits file
-        save_reduced_spectrum(recipe, _data, reduced_data)
+        save_reduced_spectrum(recipe, _data, sregion, reduced_data)
     end
 end
 
-function save_reduced_spectrum(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell}, reduced_data::Vector)
-    n_orders = length(reduced_data)
+function get_extraction_result(recipe::iSHELLReduceRecipe, data::SpecData{:ishell}, sregion::SpecRegion2d, reduced_data::Vector)
+    extract_orders = get_extract_orders(recipe, data, sregion)
+    n_orders = abs(sregion.orderbottom - sregion.ordertop) + 1
+    order_min = min(sregion.orderbottom, sregion.ordertop)
+    order_max = max(sregion.orderbottom, sregion.ordertop)
+    orders_all = [order_min:order_max;]
     reduced_data_out = fill(NaN, (n_orders, 2048, 3))
-    k = 1
-    for i=1:n_orders
-        if !isnothing(reduced_data[k])
-            reduced_data_out[i, :, 1] .= reduced_data[k].spec1d
-            reduced_data_out[i, :, 2] .= reduced_data[k].spec1derr
-            reduced_data_out[i, :, 3] .= reduced_data[k].spec1dmask
-            k += 1
+    for i=1:length(extract_orders)
+        order = order_min + i - 1
+        k = findfirst(order .== orders_all)
+        if !isnothing(reduced_data[i]) && order ∈ extract_orders
+            reduced_data_out[k, :, 1] .= reduced_data[i].spec1d
+            reduced_data_out[k, :, 2] .= reduced_data[i].spec1derr
+            reduced_data_out[k, :, 3] .= reduced_data[i].spec1dmask
         end
     end
+    return reduced_data_out
+end
+
+function save_reduced_spectrum(recipe::iSHELLReduceRecipe, data::SpecData2d{:ishell}, sregion::SpecRegion2d, reduced_data::Vector)
+    reduced_data_out = get_extraction_result(recipe, data, sregion, reduced_data)
     target = replace(parse_object(data), " " => "_")
     fname = "$(recipe.output_path)spectra$(Base.Filesystem.path_separator)$(splitext(basename(data.fname))[1])_$(target)_reduced.fits"
     FITSIO.fitswrite(fname, reduced_data_out, header=data.header)

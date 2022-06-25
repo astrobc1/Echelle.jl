@@ -14,8 +14,9 @@ const name = "PARVI"
 const observatory = "palomar"
 
 # Orders
-SpectralData.orderbottom(data::SpecData{:parvi}) = 129
-SpectralData.ordertop(data::SpecData{:parvi}) = 85
+const echelle_orders = [85, 129]
+SpectralData.orderbottom(data::SpecData{:parvi}) = echelle_orders[2]
+SpectralData.ordertop(data::SpecData{:parvi}) = echelle_orders[1]
 
 const detector = Dict{String, Any}(
     "gain" => 1.0,

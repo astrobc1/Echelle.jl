@@ -1,2 +1,115 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Spectral Modeling Tutorials · Echelle.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img class="docs-light-only" src="../assets/logo.png" alt="Echelle.jl logo"/><img class="docs-dark-only" src="../assets/logo-dark.png" alt="Echelle.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Echelle.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Echelle.jl</a></li><li><a class="tocitem" href="../spectrographs/">Spectrographs</a></li><li><a class="tocitem" href="../reductiontutorial/">Reduction Tutorials</a></li><li class="is-active"><a class="tocitem" href>Spectral Modeling Tutorials</a></li><li><a class="tocitem" href="../reductionapi/">Reduction API</a></li><li><a class="tocitem" href="../spectralmodelingapi/">Spectral Modeling API</a></li><li><a class="tocitem" href="../modspecbehavior/">Modifying Existing Spectrograph Behavior</a></li><li><a class="tocitem" href="../spectraldataapi/">Spectral Data API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Spectral Modeling Tutorials</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Spectral Modeling Tutorials</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/astrobc1/Echelle.jl/blob/master/docs/src/spectralmodelingtutorial.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Spectral-Modeling-Tutorials"><a class="docs-heading-anchor" href="#Spectral-Modeling-Tutorials">Spectral Modeling Tutorials</a><a id="Spectral-Modeling-Tutorials-1"></a><a class="docs-heading-anchor-permalink" href="#Spectral-Modeling-Tutorials" title="Permalink"></a></h1><p>Spectral Modeling tutorials</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reductiontutorial/">« Reduction Tutorials</a><a class="docs-footer-nextpage" href="../reductionapi/">Reduction API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Friday 24 June 2022 07:58">Friday 24 June 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Spectral Modeling Tutorials · Echelle.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img class="docs-light-only" src="../assets/logo.png" alt="Echelle.jl logo"/><img class="docs-dark-only" src="../assets/logo-dark.png" alt="Echelle.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Echelle.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Echelle.jl</a></li><li><a class="tocitem" href="../spectrographs/">Spectrographs</a></li><li><a class="tocitem" href="../reductiontutorial/">Reduction Tutorials</a></li><li class="is-active"><a class="tocitem" href>Spectral Modeling Tutorials</a><ul class="internal"><li class="toplevel"><a class="tocitem" href="#Example-1A:-iSHELL,-KGAS-mode-with-13CH4-gas-cell."><span>Example 1A: iSHELL, KGAS mode with 13CH4 gas cell.</span></a></li><li class="toplevel"><a class="tocitem" href="#Example-1B:-iSHELL,-KGAS-mode-with-13CH4-gas-cell,-Barnard&#39;s-Star."><span>Example 1B: iSHELL, KGAS mode with 13CH4 gas cell, Barnard&#39;s Star.</span></a></li><li class="toplevel"><a class="tocitem" href="#Example-2:-HARPS,-51-Pegasi-in-parallel."><span>Example 2: HARPS, 51-Pegasi in parallel.</span></a></li></ul></li><li><a class="tocitem" href="../reductionapi/">Reduction API</a></li><li><a class="tocitem" href="../spectralmodelingapi/">Spectral Modeling API</a></li><li><a class="tocitem" href="../modspecbehavior/">Modifying Existing Spectrograph Behavior</a></li><li><a class="tocitem" href="../spectraldataapi/">Spectral Data API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Spectral Modeling Tutorials</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Spectral Modeling Tutorials</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/astrobc1/Echelle.jl/blob/master/docs/src/spectralmodelingtutorial.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Spectral-Modeling-Tutorials"><a class="docs-heading-anchor" href="#Spectral-Modeling-Tutorials">Spectral Modeling Tutorials</a><a id="Spectral-Modeling-Tutorials-1"></a><a class="docs-heading-anchor-permalink" href="#Spectral-Modeling-Tutorials" title="Permalink"></a></h1><p>There is currently one primary container for spectral modeling: <code>IterativeSpectralRVEnsembleProblem</code>. Regarldess of the spectrograph, the output structure is identical. A new folder is created within the provided <code>output_path</code> variable at <code>output_path/[spectrograph]_[tag]/</code>. Within this folder will be a subfolder for each order (or chunk). Within a given order/chunk folder, one finds Fits, RVs, and Templates, as well as the primary ensemble pbject stored in a <code>.jld</code> file.</p><p>The structure is summed up as follows for chunks defined by orders.</p><ul><li><code>output_path/[spectrograph]_[tag]/</code></li><li><code>Order[M]</code><ul><li><code>ensemble_Order[M].jld</code></li><li><code>Fits/</code><ul><li><code>[filename]_Order[M]_iter1.png</code></li><li><code>[filename]_Order[M]_iter2.png</code></li><li><code>...</code></li><li><code>optimization_results_Order[M].jld</code></li></ul></li><li><code>RVs/</code><ul><li><code>rvs_Order[M]_iter1.png</code></li><li><code>rvs_Order[M]_iter2.png</code></li><li><code>...</code></li><li><code>rvs_Order[M].jld</code></li></ul></li><li><code>Templates/</code><ul><li><code>stellar_templates_Order[M].txt</code></li></ul></li></ul></li></ul><h1 id="Example-1A:-iSHELL,-KGAS-mode-with-13CH4-gas-cell."><a class="docs-heading-anchor" href="#Example-1A:-iSHELL,-KGAS-mode-with-13CH4-gas-cell.">Example 1A: iSHELL, KGAS mode with 13CH4 gas cell.</a><a id="Example-1A:-iSHELL,-KGAS-mode-with-13CH4-gas-cell.-1"></a><a class="docs-heading-anchor-permalink" href="#Example-1A:-iSHELL,-KGAS-mode-with-13CH4-gas-cell." title="Permalink"></a></h1><p>In this example, we fit two nights of spectra of Barnard&#39;s Star (GJ 699) recorded with the iSHELL spectrograph in KGAS mode.</p><pre><code class="language-julia hljs">
+# Imports
+using EchelleBase
+using EchelleSpectralModeling
+using Echelle.ishell
+
+# Config
+spectrograph = &quot;iSHELL&quot;
+data_input_path = &quot;GJ_699_iSHELL_Example/&quot;
+filelist = &quot;filelist_example.txt&quot;
+output_path = &quot;/Users/cale/Research/specmodel_results/&quot;
+star_name = &quot;GJ_699&quot;
+tag = &quot;gj699_example&quot;
+do_orders = [219, 222, 226]
+templates_path = &quot;SpectralTemplates/&quot;
+
+# Static gas cell guess for iSHELL gas cell depth. The deviation from unity is likely due to the off-axis angle the gas cell is placed in iSHELL vs. the FTS scan.
+τ_gascell = [ishell.gascell_depth, ishell.gascell_depth, ishell.gascell_depth]
+
+# Loop over orders
+# All results will be saved to specmodel_results/ishell_gj699_example/Chunki/.../
+for order ∈ do_orders
+
+    # Pixel bounds for this order. iSHELL spectra are 2048 pixels long.
+    pixmin, pixmax = 200, 1848
+
+    # Get estimated wavelength grid in order to set corresponding wavelength bounds for this order
+    λ_estimate = ishell.get_λsolution_estimate_order(order)
+
+    # Define the region
+    sregion = SpecRegion1d(pixmin=pixmin, pixmax=pixmax, λmin=λ_estimate[pixmin], λmax=λ_estimate[pixmax], order=order)
+
+    # Create the model
+    model = SpectralForwardModel(λsolution=PolyλSolution(deg=2, bounds=[-0.05, 0.05]),
+                                 continuum=SplineContinuum(n_splines=6, bounds=[0.7, 1.3]),
+                                 lsf=HermiteLSF(deg=0, σ_guess=ishell.lsfσ_guess_kgas_0375),
+                                 star=AugmentedStar(star_name=star_name),
+                                 gascell=GasCell(input_file=templates_path * ishell.gascell_file, depth_guess=τ_gascell),
+                                 tellurics=TAPASTellurics(input_file=templates_path * &quot;TAPAS_tellurics_maunakea.npz&quot;, vel_guess=[-200, 20, 200]),
+                                 sregion=sregion, oversample=4)
+
+    # Simple RMS objective (uniform weights)
+    obj = RMS()
+
+    # Create the ensemble
+    ensemble = IterativeSpectralRVEnsembleProblem(spectrograph=spectrograph,
+                                                  data_input_path=data_input_path, filelist=filelist,
+                                                  model=model, obj=obj)
+    
+    # Run RVs for this order
+    compute_rvs(ensemble, output_path=output_path, tag=tag, n_iterations=5, do_ccf=false, verbose=true)
+
+end
+</code></pre><h1 id="Example-1B:-iSHELL,-KGAS-mode-with-13CH4-gas-cell,-Barnard&#39;s-Star."><a class="docs-heading-anchor" href="#Example-1B:-iSHELL,-KGAS-mode-with-13CH4-gas-cell,-Barnard&#39;s-Star.">Example 1B: iSHELL, KGAS mode with 13CH4 gas cell, Barnard&#39;s Star.</a><a id="Example-1B:-iSHELL,-KGAS-mode-with-13CH4-gas-cell,-Barnard&#39;s-Star.-1"></a><a class="docs-heading-anchor-permalink" href="#Example-1B:-iSHELL,-KGAS-mode-with-13CH4-gas-cell,-Barnard&#39;s-Star." title="Permalink"></a></h1><p>In this example, we look at the results of the spectral forward modeling and generate RVs which are co-added across orders and/or multiple exposures.</p><pre><code class="language-julia hljs"></code></pre><h1 id="Example-2:-HARPS,-51-Pegasi-in-parallel."><a class="docs-heading-anchor" href="#Example-2:-HARPS,-51-Pegasi-in-parallel.">Example 2: HARPS, 51-Pegasi in parallel.</a><a id="Example-2:-HARPS,-51-Pegasi-in-parallel.-1"></a><a class="docs-heading-anchor-permalink" href="#Example-2:-HARPS,-51-Pegasi-in-parallel." title="Permalink"></a></h1><p>In this example, we utilize data recorded with HARPS-S downloaded from the ESO archive. Note this will take some time! One can limit the wavelength range to something smaller (and change the number of chunks accordingly) in the line <code>chunks = range(480, 700, length=101)</code>.</p><pre><code class="language-julia hljs">
+# Imports
+using Distributed
+using EchelleBase
+using EchelleSpectralModeling
+using Echelle.harps
+
+# Parallel setup
+n_cores = 2 # Increase/decrease as desired
+addprocs(n_cores)
+@everywhere begin
+    using EchelleBase
+    using EchelleSpectralModeling
+    using Echelle.harps
+end
+
+# Basic info
+spectrograph = &quot;HARPS&quot;
+data_input_path = &quot;/Users/cale/Research/Spectrographs/HARPS/Reduced/51Peg/&quot;
+filelist = &quot;filelist.txt&quot;
+output_path = &quot;specmodel_results/&quot;
+star_name = &quot;51_Peg&quot;
+tag = &quot;51peg_example&quot;
+templates_path = &quot;SpectralTemplates/&quot;
+
+# Archival HARPS data is already stiched together, so we define our own chunks: 100 chunks from 480 - 700 nm.
+chunks = range(480, 700, length=101)
+
+# Loop over chunks
+# All results will be saved to specmodel_results/harps_51peg_example/Chunki/.../
+for i=1:length(chunks)-1
+    
+    # Define the region for this chunk. Note in this case the bounds are set by the wavelength values in the lab frame, not by pixels.
+    sregion = SpecRegion1d(pixmin=nothing, pixmax=nothing, λmin=chunks[i], λmax=chunks[i+1], label=&quot;Chunk$i&quot;)
+
+    # Create the model
+    # Note we use a static lsf width, which while may not be accurate, still yields accurate relative RVs in current tests.
+    # We also steal the telluric template from CTIO instead of La Silla, which is reasonable for this example as tellurics are sparse in the visible.
+    model = SpectralForwardModel(λsolution=APrioriλSolution(),
+                                 continuum=PolyContinuum(deg=1, coeffs_guess=Dict(0=&gt;[0.95, 1.0, 1.1], 1=&gt;[-1E-4, 1E-5, 1E-4])),
+                                 lsf=HermiteLSF(deg=0, σ_guess=harps.lsfσ),
+                                 star=AugmentedStar(star_name=star_name),
+                                 tellurics=TAPASTellurics(input_file=templates_path * &quot;TAPAS_tellurics_ctio.npz&quot;, vel_guess=[-300, 10, 300], min_feature_depth=0.1),
+                                 sregion=sregion, oversample=8)
+
+    # Simple RMS objective (uniform weights)
+    obj = RMS()
+
+    # Create the ensemble
+    ensemble = IterativeSpectralRVEnsembleProblem(spectrograph=spectrograph,
+                                                  data_input_path=data_input_path, filelist=filelist,
+                                                  model=model, obj=obj)
+    
+    # Run RVs for this chunk
+    compute_rvs(ensemble, output_path=output_path, tag=tag, n_iterations=10, do_ccf=false, verbose=true)
+
+end
+
+# Remove workers
+rmprocs(workers())
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reductiontutorial/">« Reduction Tutorials</a><a class="docs-footer-nextpage" href="../reductionapi/">Reduction API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Friday 24 June 2022 18:59">Friday 24 June 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
