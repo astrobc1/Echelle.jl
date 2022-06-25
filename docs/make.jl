@@ -1,10 +1,4 @@
-#pushfirst!(LOAD_PATH,"../src/")
-pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleBase/src/")
-pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleReduce/src/")
-pushfirst!(LOAD_PATH, "/Users/cale/Development/CurveFitParameters/src/")
-pushfirst!(LOAD_PATH, "/Users/cale/Development/IterativeNelderMead/src/")
-pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleSpectralModeling/src/")
-pushfirst!(LOAD_PATH, "/Users/cale/Development/Echelle/src/")
+pushfirst!(LOAD_PATH,"../src/")
 
 using Documenter
 using Echelle
