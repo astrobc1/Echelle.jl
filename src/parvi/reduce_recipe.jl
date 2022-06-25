@@ -300,8 +300,8 @@ end
 
 function EchelleReduce.extract(recipe::PARVIReduceRecipe, data, traces_fiber1=nothing, traces_fiber3=nothing, sregion_fiber1=nothing, sregion_fiber3=nothing)
 
-    #pmap(1:length(data["extract"])) do i
-    map(1:length(data["extract"])) do i
+    pmap(1:length(data["extract"])) do i
+    #map(1:length(data["extract"])) do i
         
         # Alias data
         _data = data["extract"][i]
