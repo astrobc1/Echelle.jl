@@ -27,4 +27,5 @@ SkyCoords = "fc659fc5-75a3-5475-a2ea-3da92c065361"
 SpecialMatrices = "928aab9d-ef52-54ac-8ca1-acd7ca42c160"
 
 [compat]
-NaNStatistics = "0.6.11, 0.6.11"
+LoopVectorization = "0.12.118"
+NaNStatistics = "0.6.13"
