@@ -1,25 +1,25 @@
 pushfirst!(LOAD_PATH,"../src/")
 
 using Documenter
-#using EchelleBase
-#using EchelleReduce
-#using EchelleSpectralModeling
-#using Echelle
+using EchelleBase
+using EchelleReduce
+using EchelleSpectralModeling
+using Echelle
 
 makedocs(
     sitename = "Echelle.jl",
     format = Documenter.HTML(),
-#    modules = [Echelle, EchelleBase, EchelleReduce, EchelleSpectralModeling],
-    modules = [Echelle],
+    modules = [EchelleBase, EchelleReduce, EchelleSpectralModeling, Echelle],
+    #modules = [Echelle],
     pages = [
         "index.md",
-        # "spectrographs.md",
-        # "reductiontutorial.md",
-        # "spectralmodelingtutorial.md",
-        # "reductionapi.md",
-        # "spectralmodelingapi.md",
-        # "modspecbehavior.md",
-        # "spectraldataapi.md"
+        "spectrographs.md",
+        "reductiontutorial.md",
+        "spectralmodelingtutorial.md",
+        "reductionapi.md",
+        "spectralmodelingapi.md",
+        "modspecbehavior.md",
+        "spectraldataapi.md"
     ]
 )
 
