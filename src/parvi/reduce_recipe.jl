@@ -287,7 +287,7 @@ function get_extract_fibers(recipe::PARVIReduceRecipe, data::SpecData2d{:parvi})
         fibers = [1]
     elseif occursin("fiber3", data.fname)
         fibers = [3]
-    elseif occursin("fiber1", data.fname)
+    elseif startswith(data.fname, "LFC")
         fibers = [3]
     elseif occursin("master_lfc", data.fname)
         fibers = [1, 3]
@@ -296,7 +296,6 @@ function get_extract_fibers(recipe::PARVIReduceRecipe, data::SpecData2d{:parvi})
     end
     return fibers
 end
-
 
 function EchelleReduce.extract(recipe::PARVIReduceRecipe, data, traces_fiber1=nothing, traces_fiber3=nothing, sregion_fiber1=nothing, sregion_fiber3=nothing)
 
