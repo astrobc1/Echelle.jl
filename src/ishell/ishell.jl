@@ -27,7 +27,7 @@ const detector = Dict(
 
 # Some info for spectral forward modeling
 const gascell_file = "methane_gas_cell_ishell_kgas.npz"
-const gascell_depth = 0.97
+const τ_gascell = 0.97
 const lsfσ_guess_kgas_0375 = [0.01, 0.013, 0.016]
 
 # Parsing

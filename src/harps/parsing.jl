@@ -19,6 +19,7 @@ function SpectralData.read_spec1d(data::SpecData1d{:harps}, sregion::SpecRegion1
     data.data.mask[bad] .= 0
     data.data.fluxerr = sqrt.(data.data.flux)
     normalize!(data, p=0.98)
+    close(f)
 end
 
 

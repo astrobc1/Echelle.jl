@@ -16,6 +16,7 @@ function SpectralData.read_spec1d(data::SpecData1d{:chiron}, sregion::SpecRegion
     data.data.mask = mask
     mask!(data, sregion)
     normalize!(data)
+    close(f)
 end
 
 

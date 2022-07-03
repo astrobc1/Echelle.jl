@@ -18,6 +18,7 @@ function SpectralData.read_spec1d(data::SpecData1d{:espresso}, sregion::SpecRegi
     data.data.fluxerr[bad] .= NaN
     data.data.mask[bad] .= 0
     normalize!(data)
+    close(f)
 end
 
 SpectralData.read_header(d::SpecData{:espresso}) = FITSIO.read_header(FITS(d.fname)[1])

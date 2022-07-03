@@ -15,28 +15,37 @@ function SpectralData.read_spec1d(data::SpecData1d{:parvi}, sregion::SpecRegion1
     data.data.mask = mask
     mask!(data, sregion)
     normalize!(data)
+    close(f)
 end
 
 function SpectralData.read_image(d::MasterCal2d{:parvi}, scale_to_itime=false)
+
+    f = FITS(d.fname)
     
-    image = Float64.(read(FITS(d.fname)[1]))
+    image = Float64.(read(f[1]))
 
     # Scale slope to itime
     if scale_to_itime
         image .*= parse_itime(d)
     end
+
+    close(f)
     
     return image
 end
 
 function SpectralData.read_image(d::SpecData2d{:parvi}, scale_to_itime=false)
+
+    f = FITS(d.fname)
     
-    image = Float64.(read(FITS(d.fname)[1]))
+    image = Float64.(read(f[1]))
 
     # Scale slope to itime
     if scale_to_itime
         image .*= parse_itime(d)
     end
+
+    close(f)
     
     return image
 end
@@ -46,6 +55,7 @@ parse_fiber_nums(d::MasterCal2d{:parvi}) = parse_fiber_nums(d.group[1])
 SpectralData.read_header(d::SpecData{:parvi}) = FITSIO.read_header(FITS(d.fname)[1])
 SpectralData.parse_itime(d::SpecData{:parvi}) = d.header["EXPTIME"]
 SpectralData.parse_itime(d::MasterCal2d{:parvi}) = d.group[1].header["EXPTIME"]
+SpectralData.parse_airmass(d::SpecData{:parvi}) = d.header["P200_AIR"]
 SpectralData.parse_object(d::SpecData{:parvi}) = d.header["OBJECT"]
 
 function SpectralData.parse_utdate(d::SpecData{:parvi})

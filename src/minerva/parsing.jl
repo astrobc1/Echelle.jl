@@ -19,6 +19,7 @@ function SpectralData.read_spec1d(data::SpecData1d{:minerva}, sregion::SpecRegio
     data.data.mask = mask
     mask!(data, sregion)
     normalize!(data, p=0.98)
+    close(f)
 end
 
 
