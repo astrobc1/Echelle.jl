@@ -21,7 +21,7 @@ The structure is summed up as follows for chunks defined by orders, where `label
     - `Templates/`
         - `stellar_templates_label[M].txt`
 
-# Example 1A: iSHELL, KGAS mode, $^{13}CH_{4}$ gas cell.
+# Example 1: iSHELL, KGAS mode, $^{13}CH_{4}$ gas cell
 
 In this example, we fit two nights of spectra of Barnard's Star (GJ 699) recorded with the iSHELL spectrograph in KGAS mode.
 
@@ -83,8 +83,6 @@ for order ∈ do_orders
 end
 
 ```
-
-# Example 1B: iSHELL, KGAS mode, $^{13}CH_{4}$ gas cell.
 
 Now we look at the results of the spectral forward modeling and generate RVs which are co-added across orders and/or multiple exposures iSHELL results.
 
@@ -160,8 +158,6 @@ end
 rmprocs(workers())
 
 ```
-
-# Example 2B: iSHELL, KGAS mode, $^{13}CH_{4}$ gas cell.
 
 Now we look at the results of the spectral forward modeling and generate RVs which are co-added across orders and/or multiple exposures from the HARPS results.
 

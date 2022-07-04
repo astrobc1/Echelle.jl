@@ -42,7 +42,7 @@ SplineλSolution
 PolyλSolution
 ```
 
-#### Combs
+#### Combs/Etalons
 
 ```@docs
 get_peaks
@@ -52,7 +52,6 @@ get_peaks
 
 ```@docs
 AugmentedStar
-augment_star!
 ```
 
 ### Tellurics
@@ -71,6 +70,14 @@ HermiteLSF
 
 ```@docs
 GasCell
+```
+
+## Template Augmenting
+
+```@docs
+TemplateAugmenter
+WeightedMedianAugmenter
+augment_star!
 ```
 
 ## Objective Functions
