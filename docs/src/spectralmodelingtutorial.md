@@ -3,25 +3,25 @@ Spectral Modeling Tutorials
 
 There is currently one primary container for spectral modeling: `IterativeSpectralRVEnsembleProblem`. Regarldess of the spectrograph, the output structure is identical. A new folder is created within the provided `output_path` variable at `output_path/[spectrograph]_[tag]/`. Within this folder will be a subfolder for each order (or chunk). Within a given order/chunk folder, one finds Fits, RVs, and Templates, as well as the primary ensemble pbject stored in a `.jld` file.
 
-The structure is summed up as follows for chunks defined by orders.
+The structure is summed up as follows for chunks defined by orders, where `label[M]` = `Order[M]` or `Chunk[M]`.
 
 - `output_path/[spectrograph]_[tag]/`
-- `Order[M]`
+- `label[M]`
     - `ensemble_Order[M].jld`
     - `Fits/`
-        - `[filename]_Order[M]_iter1.png`
-        - `[filename]_Order[M]_iter2.png`
+        - `[filename]_label[M]_iter1.png`
+        - `[filename]_label[M]_iter2.png`
         - `...`
-        - `optimization_results_Order[M].jld`
+        - `optimization_results_label[M].jld`
     - `RVs/`
-        - `rvs_Order[M]_iter1.png`
-        - `rvs_Order[M]_iter2.png`
+        - `rvs_label[M]_iter1.png`
+        - `rvs_label[M]_iter2.png`
         - `...`
-        - `rvs_Order[M].jld`
+        - `rvs_label[M].jld`
     - `Templates/`
-        - `stellar_templates_Order[M].txt`
+        - `stellar_templates_label[M].txt`
 
-# Example 1A: iSHELL, KGAS mode with 13CH4 gas cell.
+# Example 1A: iSHELL, KGAS mode, $^{13}CH_{4}$ gas cell.
 
 In this example, we fit two nights of spectra of Barnard's Star (GJ 699) recorded with the iSHELL spectrograph in KGAS mode.
 
@@ -42,8 +42,9 @@ tag = "gj699_example"
 do_orders = [219, 222, 226]
 templates_path = "SpectralTemplates/"
 
-# Static gas cell guess for iSHELL gas cell depth. The deviation from unity is likely due to the off-axis angle the gas cell is placed in iSHELL vs. the FTS scan.
-τ_gascell = [ishell.gascell_depth, ishell.gascell_depth, ishell.gascell_depth]
+# iSHELL gas cell depth (= 0.97, fixed).
+# The deviation from unity is likely due to the off-axis angle the gas cell is placed in iSHELL vs. the FTS scan.
+τ_gascell = [ishell.τ_gascell, ishell.τ_gascell, ishell.τ_gascell]
 
 # Loop over orders
 # All results will be saved to specmodel_results/ishell_gj699_example/Chunki/.../
@@ -70,27 +71,28 @@ for order ∈ do_orders
     # Simple RMS objective (uniform weights)
     obj = RMS()
 
+    # Simple Augmenter (weighted median)
+    augmenter = WeightedMedianAugmenter()
+
     # Create the ensemble
-    ensemble = IterativeSpectralRVEnsembleProblem(spectrograph=spectrograph,
-                                                  data_input_path=data_input_path, filelist=filelist,
-                                                  model=model, obj=obj)
+    ensemble = IterativeSpectralRVEnsembleProblem(spectrograph=spectrograph, filenames, model=model, obj=obj, augmenter=augmenter)
     
     # Run RVs for this order
-    compute_rvs(ensemble, output_path=output_path, tag=tag, n_iterations=5, do_ccf=false, verbose=true)
+    compute_rvs(ensemble, output_path=output_path, tag=tag, n_iterations=5, do_ccf=false, initial_star_from_data=false, verbose=true)
 
 end
 
 ```
 
-# Example 1B: iSHELL, KGAS mode with 13CH4 gas cell, Barnard's Star.
+# Example 1B: iSHELL, KGAS mode, $^{13}CH_{4}$ gas cell.
 
-In this example, we look at the results of the spectral forward modeling and generate RVs which are co-added across orders and/or multiple exposures.
+Now we look at the results of the spectral forward modeling and generate RVs which are co-added across orders and/or multiple exposures iSHELL results.
 
 ```julia
 
 ```
 
-# Example 2: HARPS, 51-Pegasi in parallel.
+# Example 2A: HARPS, 51-Pegasi in parallel (single computing node).
 
 In this example, we utilize data recorded with HARPS-S downloaded from the ESO archive, which can be downloaded [here](https://drive.google.com/file/d/1-vrL2qzsWv8x_StDqOwQXJ9eqxAGFWsM/view?usp=sharing). Extract the zip once downloaded. Note this will take some time! One can limit the wavelength range to something smaller (and change the number of chunks accordingly) in the line `chunks = range(480, 700, length=101)`.
 
@@ -131,7 +133,7 @@ for i=1:length(chunks)-1
     sregion = SpecRegion1d(pixmin=nothing, pixmax=nothing, λmin=chunks[i], λmax=chunks[i+1], label="Chunk$i")
 
     # Create the model
-    # Note we use a static lsf width, which while may not be accurate, still yields accurate relative RVs in current tests.
+    # Note we use a static lsf width, which while may not be accurate, still yields accurate relative RVs from current tests.
     # We also steal the telluric template from CTIO instead of La Silla, which is reasonable for this example as tellurics are sparse in the visible.
     model = SpectralForwardModel(λsolution=APrioriλSolution(),
                                  continuum=PolyContinuum(deg=1, coeffs_guess=Dict(0=>[0.95, 1.0, 1.1], 1=>[-1E-4, 1E-5, 1E-4])),
@@ -143,17 +145,28 @@ for i=1:length(chunks)-1
     # Simple RMS objective (uniform weights)
     obj = RMS()
 
+    # Simple Augmenter (weighted median)
+    augmenter = WeightedMedianAugmenter()
+
     # Create the ensemble
-    ensemble = IterativeSpectralRVEnsembleProblem(spectrograph=spectrograph,
-                                                  data_input_path=data_input_path, filelist=filelist,
-                                                  model=model, obj=obj)
+    ensemble = IterativeSpectralRVEnsembleProblem(spectrograph=spectrograph, filenames, model=model, obj=obj, augmenter=augmenter)
     
-    # Run RVs for this chunk
-    compute_rvs(ensemble, output_path=output_path, tag=tag, n_iterations=10, do_ccf=false, verbose=true)
+    # Run RVs for this order
+    compute_rvs(ensemble, output_path=output_path, tag=tag, n_iterations=5, do_ccf=false, initial_star_from_data=true, verbose=true)
 
 end
 
 # Remove workers
 rmprocs(workers())
+
+```
+
+# Example 2B: iSHELL, KGAS mode, $^{13}CH_{4}$ gas cell.
+
+Now we look at the results of the spectral forward modeling and generate RVs which are co-added across orders and/or multiple exposures from the HARPS results.
+
+```julia
+
+
 
 ```
