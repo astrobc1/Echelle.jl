@@ -89,7 +89,7 @@ function get_λsolution_cheb2d(fname::String; do_orders::AbstractVector{<:Real},
     max_pixel, max_order = nx, parvi.echelle_orders[2]
     coeffs_best, good_peaks = Wavelength.fit_peaks_cheb2d(pixel_centers_flat, orders_flat, λ_centers_flat, weights_flat, max_pixel, max_order, nx, deg_inter_order, deg_intra_order, 3, max_vel_cut)
 
-    chebs_pixels, chebs_orders = Wavelength.get_chebvals(pixel_centers_flat, orders_flat, max_pixel, max_order, deg_intra_order, deg_inter_order)
+    chebs_pixels, chebs_orders = Wavelength.get_chebyvals(pixel_centers_flat, orders_flat, max_pixel, max_order, deg_intra_order, deg_inter_order)
     model_best = Wavelength.build_λsolution_chebyval2d_flat(chebs_pixels, chebs_orders, coeffs_best, orders_flat)
     residuals = maths.δλ2δv.(λ_centers_flat .- model_best, λ_centers_flat)
 
