@@ -19,17 +19,17 @@ using Echelle
 makedocs(
     sitename = "Echelle.jl",
     format = Documenter.HTML(),
-    modules = [EchelleBase, EchelleReduce, EchelleSpectralModeling, Echelle],
-    #modules = [Echelle],
+    #modules = [EchelleBase, EchelleReduce, EchelleSpectralModeling, Echelle],
+    modules = [Echelle],
     pages = [
         "index.md",
-        "spectrographs.md",
-        "reductiontutorial.md",
-        "spectralmodelingtutorial.md",
-        "reductionapi.md",
-        "spectralmodelingapi.md",
-        "modspecbehavior.md",
-        "spectraldataapi.md"
+    #    "spectrographs.md",
+    #    "reductiontutorial.md",
+    #    "spectralmodelingtutorial.md",
+    #    "reductionapi.md",
+    #    "spectralmodelingapi.md",
+    #    "modspecbehavior.md",
+    #    "spectraldataapi.md"
     ]
 )
 
