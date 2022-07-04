@@ -1,4 +1,4 @@
-module nirspec
+module ishell
 
 using FITSIO
 using AstroTime
@@ -9,24 +9,34 @@ using AstroAngles
 
 using EchelleBase
 
-SpectralData.get_spec_module(::SpecData{:nirspec}) = nirspec
-const name = "nirspec"
-const observatory = "keck"
+SpectralData.get_spec_module(::SpecData{:ishell}) = ishell
+const name = "iSHELL"
+const observatory = "irtf"
 
-echelle_orders = []
+# Orders
+SpectralData.orderbottom(data::SpecData{:ishell}) = 212
+SpectralData.ordertop(data::SpecData{:ishell}) = 229
 
-detector = Dict{String, Any}(
-    "gain" => 1.0,
-    "read_noise" => 0,
-    "dark_current" => 0.0,
-    "nx" => 1024,
-    "ny" => 1024
+const detector = Dict(
+    "gain" => 1.8,
+    "read_noise" => 8.0,
+    "dark_current" => 0.05,
+    "nx" => 2048,
+    "ny" => 2048
 )
 
-const lsfσ = [0.03, 0.045, 0.07]
+# Some info for spectral forward modeling
+const gascell_file = "methane_gas_cell_ishell_kgas.npz"
+const τ_gascell = 0.97
+const lsfσ_guess_kgas_0375 = [0.01, 0.013, 0.016]
 
+# Parsing
 include("parsing.jl")
+
+# Default wavelength info
 include("wavelength.jl")
+
+# Reduce recipe
 include("reduce_recipe.jl")
 
 
