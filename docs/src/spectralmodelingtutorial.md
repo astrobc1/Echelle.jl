@@ -25,6 +25,8 @@ The structure is summed up as follows for chunks defined by orders, where `label
 
 In this example, we fit two nights of spectra of Barnard's Star (GJ 699) recorded with the iSHELL spectrograph in KGAS mode.
 
+Download data from [here](https://drive.google.com/file/d/1XNmkLy9LELs02jAcTGxQs9RVBFweal_F/view?usp=sharing).
+
 ```julia
 
 # Imports
@@ -90,7 +92,9 @@ Now we look at the results of the spectral forward modeling and generate RVs whi
 
 ```
 
-# Example 2A: HARPS, 51-Pegasi in parallel (single computing node).
+# Example 2: HARPS, 51-Pegasi in parallel (single computing node).
+
+Download data from [here](https://drive.google.com/file/d/1-vrL2qzsWv8x_StDqOwQXJ9eqxAGFWsM/view?usp=sharing).
 
 In this example, we utilize data recorded with HARPS-S downloaded from the ESO archive, which can be downloaded [here](https://drive.google.com/file/d/1-vrL2qzsWv8x_StDqOwQXJ9eqxAGFWsM/view?usp=sharing). Extract the zip once downloaded. Note this will take some time! One can limit the wavelength range to something smaller (and change the number of chunks accordingly) in the line `chunks = range(480, 700, length=101)`.
 

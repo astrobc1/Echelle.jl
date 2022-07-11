@@ -1,4 +1,3 @@
-#pushfirst!(LOAD_PATH,"../src/")
 pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleBase/src/")
 pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleReduce/src/")
 pushfirst!(LOAD_PATH, "/Users/cale/Development/EchelleSpectralModeling/src/")
@@ -16,7 +15,6 @@ makedocs(
     sitename = "Echelle.jl",
     format = Documenter.HTML(),
     modules = [EchelleBase, EchelleReduce, EchelleSpectralModeling, Echelle],
-    #modules = [Echelle],
     pages = [
        "index.md",
        "spectrographs.md",
